@@ -7,7 +7,12 @@
           v-model:edges="edges"
           class="canva"
           @node-click="onNodeClick"
+          :connection-mode="ConnectionMode.Strict"
+          @connect="onConnect"
       >
+        <template #edge-custom="customEdgeProps">
+          <CustomEdge v-bind="customEdgeProps" />
+        </template>
         <template #node-standard="props">
           <StandardNode v-bind="props" />
         </template>
@@ -49,24 +54,42 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from "vue";
-import { VueFlow } from "@vue-flow/core";
+import {Edge, MarkerType, VueFlow, ConnectionMode, Connection} from "@vue-flow/core";
 import Background from "@/components/Background.vue";
 import StandardNode from "./StandardNode.vue";
 import StartNode from "./StartNode.vue";
 import EndNode from "./EndNode.vue";
+import CustomEdge from "@/components/CustomEdge.vue";
+import {CustomData} from "@/components/edges.js";
+
+function onConnect(params : Connection) {
+  // You can generate a unique id for the new edge.
+  const newEdge = {
+    id: `e${params.source}-${params.target}`,
+    source: params.source,
+    target: params.target,
+    type: 'custom',
+    animated:true
+  };
+  edges.value.push(newEdge);
+}
+
+type CustomEdgeTypes = 'custom'
+
+type CustomEdge = Edge<CustomData, any, CustomEdgeTypes>
+
 
 // Example nodes and edges
 const nodes = ref ([
   { id: "1", type: "start", position: { x: 400, y: 200}, data: { name: "example_source", parameters: {"par1":"papaya"} , label: "node 1"} },
   { id: "2", type: "standard", position: { x: 800, y: 300}, data: { name: "example_intermediate_block"} },
-  { id: "3", type: "end", position: { x: 1200, y: 200 }, data: { name: "example_sink" ,parameters: {"par2":"hehe"} , label: "node 3"} }
+  { id: "3", type: "end", position: { x: 1200, y: 200 }, data: {  name: "example_sink" ,parameters: {"par2":"hehe"} , label: "node 3"} }
 ]);
 
-const edges = ref([
-  { id: "e1-2", source: "1", target: "2" , animated:true},
-  { id: "e2-3", source: "2", target: "3" , animated:true}
+const edges = ref<CustomEdge[]>([
+  { id: "e1-2", source: "1", target: "2" , type: "custom", animated:true},
 ]);
 
 const selectedNode = ref(null);
