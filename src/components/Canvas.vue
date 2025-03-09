@@ -63,6 +63,7 @@ import StartNode from "./StartNode.vue";
 import EndNode from "./EndNode.vue";
 import CustomEdge from "@/components/CustomEdge.vue";
 import {CustomData} from "@/components/edges.js";
+import {GuiBlock, GuiPipeline} from "@/logic/Syntax.js";
 
 function onConnect(params : Connection) {
   // You can generate a unique id for the new edge.
@@ -103,6 +104,40 @@ const onNodeClick = (event) => {
 
   }
 };
+
+//Read pipeline and construct guiPipe from nodes and edges
+const getGuiPipeline : GuiPipeline = () => {
+  let guiBlocksArr = [];
+  for (let block of nodes.value) {
+
+    //New array of output ids for each block, to add to the GuiBlock
+    let blockOuts : string[] = [];
+    for (let edge of edges.value) {
+      if (block.id === edge.source) {
+        blockOuts.push(edge.target)
+
+      }
+    }
+
+    let guiBlock : GuiBlock = {
+      id : block.id,
+      name : block.data.name,
+      parameters : block.data.parameters,
+      outputs : blockOuts
+
+    }
+
+    guiBlocksArr.push(guiBlock);
+  }
+
+  const guiPipe : GuiPipeline = {
+    blocks : guiBlocksArr
+  }
+
+  return guiPipe
+
+}
+
 </script>
 
 <style>
